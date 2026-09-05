@@ -10,3 +10,7 @@
 *.sqlite
 Cargo.lock
 
+# Repository-local build outputs, temporary files, and worktrees.
+target/
+tmp/
+temp/
