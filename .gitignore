@@ -1,7 +1,7 @@
 /target
 /node_modules
 /build
-/.dart_tool
+**/.dart_tool/
 /coverage
 .DS_Store
 .env
