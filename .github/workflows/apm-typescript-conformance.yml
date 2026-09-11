@@ -1,0 +1,103 @@
+name: APM TypeScript conformance
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/ores-apm.lock.json'
+      - 'clients/support-matrix.toml'
+      - 'clients/typescript/**'
+      - 'tools/fp-conformance/**'
+      - '.github/workflows/apm-typescript-conformance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/ores-apm.lock.json'
+      - 'clients/support-matrix.toml'
+      - 'clients/typescript/**'
+      - 'tools/fp-conformance/**'
+      - '.github/workflows/apm-typescript-conformance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apm-typescript-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conformance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact client candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          show-progress: false
+
+      - name: Read pinned APM authority
+        id: apm
+        shell: bash
+        run: |
+          set -euo pipefail
+          lock=contracts/ores-apm.lock.json
+          revision="$(jq -er '.revision' "$lock")"
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
+          test "$(jq -er '.repository' "$lock")" = 'ores-otel/ores-interfaces'
+          printf 'revision=%s\n' "$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Check out exact APM authority
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ores-otel/ores-interfaces
+          ref: ${{ steps.apm.outputs.revision }}
+          path: .deps/ores-interfaces
+          persist-credentials: false
+          show-progress: false
+
+      - name: Verify locked authority paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          lock=contracts/ores-apm.lock.json
+          for field in typespec jsonSchema fixture; do
+            path=".deps/ores-interfaces/$(jq -er --arg field "$field" '.[$field]' "$lock")"
+            test -s "$path"
+          done
+
+      - name: Set up Node 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22.16.0'
+          package-manager-cache: false
+
+      - name: Verify immutable TypeScript model and canonical fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture=".deps/ores-interfaces/$(jq -er '.fixture' contracts/ores-apm.lock.json)"
+          npx --yes --package=typescript@5.9.2 tsc \
+            --noEmit --strict --target ES2022 --module ESNext --moduleResolution Bundler \
+            --lib ES2022,DOM clients/typescript/src/*.ts
+          npx --yes tsx@4.20.5 clients/typescript/apm-result-fixture.test.ts "$fixture"
+
+      - name: Require functional-programming ratchet
+        run: python3 tools/fp-conformance/fp_conformance.py .
+
+      - name: Enforce support matrix honesty
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import tomllib
+          from pathlib import Path
+          doc = tomllib.loads(Path('clients/support-matrix.toml').read_text())
+          langs = doc['languages']
+          assert len(langs) >= 15, len(langs)
+          assert langs['rust']['apm'] == 'conformant'
+          assert langs['typescript']['apm'] == 'conformant'
+          assert langs['dart']['apm'] == 'pending'
+          assert doc['apm']['contract_revision'] == '${{ steps.apm.outputs.revision }}'
+          PY
