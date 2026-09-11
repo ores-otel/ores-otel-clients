@@ -15,4 +15,3 @@ pub enum ClientError {
     #[error("body was not valid JSON")]
     InvalidJson,
 }
-
