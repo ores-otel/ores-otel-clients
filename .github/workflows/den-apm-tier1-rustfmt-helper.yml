@@ -1,0 +1,45 @@
+name: DEN-APM Tier-1 rustfmt helper
+
+on:
+  push:
+    branches:
+      - DEN-APM-tier1-rustfmt-helper
+
+permissions:
+  contents: write
+
+concurrency:
+  group: den-apm-tier1-rustfmt-helper-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: true
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30
+        with:
+          toolchain: 1.95.0
+          components: rustfmt
+
+      - name: Normalize Rust Tier-1 client
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo fmt --manifest-path clients/rust/Cargo.toml
+          if git diff --quiet -- clients/rust; then
+            echo "Already normalized under rustfmt 1.95.0"
+            exit 0
+          fi
+          git diff --check -- clients/rust
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add clients/rust
+          git commit -m "APM: normalize Rust Tier-1 client"
+          git push origin HEAD:DEN-APM-tier1-rustfmt-helper
