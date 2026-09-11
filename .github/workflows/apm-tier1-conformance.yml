@@ -96,8 +96,8 @@ jobs:
           set -euo pipefail
           fixture=".deps/ores-interfaces/$(jq -er '.fixture' contracts/ores-apm.lock.json)"
           npx --yes --package=typescript@5.9.2 tsc \
-            --noEmit --strict --target ES2022 --module NodeNext --moduleResolution NodeNext \
-            --allowImportingTsExtensions clients/typescript/apm-fixture.test.ts
+            --noEmit --strict --target ES2022 --module ESNext --moduleResolution Bundler \
+            --lib ES2022,DOM clients/typescript/src/*.ts
           npx --yes tsx@4.20.5 clients/typescript/apm-fixture.test.ts "$fixture"
 
       - name: Set up Dart
