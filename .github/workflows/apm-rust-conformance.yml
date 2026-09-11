@@ -71,14 +71,20 @@ jobs:
           toolchain: 1.95.0
           components: rustfmt,clippy
 
-      - name: Verify Rust model and canonical fixture
+      - name: Rustfmt exact sources
+        run: cargo fmt --manifest-path clients/rust/Cargo.toml -- --check
+
+      - name: Clippy all Rust targets
+        run: cargo clippy --manifest-path clients/rust/Cargo.toml --all-targets -- -D warnings
+
+      - name: Test all Rust targets
+        run: cargo test --manifest-path clients/rust/Cargo.toml --all-targets
+
+      - name: Execute canonical APM fixture
         shell: bash
         run: |
           set -euo pipefail
           fixture=".deps/ores-interfaces/$(jq -er '.fixture' contracts/ores-apm.lock.json)"
-          cargo fmt --manifest-path clients/rust/Cargo.toml -- --check
-          cargo clippy --manifest-path clients/rust/Cargo.toml --all-targets -- -D warnings
-          cargo test --manifest-path clients/rust/Cargo.toml --all-targets
           cargo run --quiet --manifest-path clients/rust/Cargo.toml --example verify_apm_fixture -- "$fixture"
 
       - name: Enforce honest 17-language matrix
