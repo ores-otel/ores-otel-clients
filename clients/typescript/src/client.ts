@@ -54,12 +54,8 @@ function deepFreeze<T>(value: T): T {
   return Object.freeze(value);
 }
 
-function decodeApmSnapshotValue(value: unknown): Result<ApmSnapshot, ApmDecodeError> {
-  const rootResult = requireRecord(value, "invalid_apm_root");
-  if (!rootResult.ok) return rootResult;
-  const root = rootResult.value;
+function validateIdentity(root: Record<string, unknown>): Result<true, ApmDecodeError> {
   if (root.schema_version !== 1) return failure("invalid_apm_schema_version");
-
   const observedAt = requireString(
     root,
     "observed_at_unix_nano",
@@ -73,9 +69,11 @@ function decodeApmSnapshotValue(value: unknown): Result<ApmSnapshot, ApmDecodeEr
     "service_instance_id",
     "invalid_apm_service_instance_id",
   );
-  if (!serviceInstanceId.ok) return serviceInstanceId;
+  return serviceInstanceId.ok ? success(true) : serviceInstanceId;
+}
 
-  const processResult = requireRecord(root.process, "invalid_apm_process");
+function validateProcess(value: unknown): Result<true, ApmDecodeError> {
+  const processResult = requireRecord(value, "invalid_apm_process");
   if (!processResult.ok) return processResult;
   const process = processResult.value;
   const cpuTime = requireNumber(process, "cpu_time_seconds", "invalid_apm_cpu_time_seconds");
@@ -103,11 +101,11 @@ function decodeApmSnapshotValue(value: unknown): Result<ApmSnapshot, ApmDecodeEr
   const diskWrite = requireString(process, "disk_write_bytes", "invalid_apm_disk_write_bytes");
   if (!diskWrite.ok) return diskWrite;
   const uptime = requireNumber(process, "uptime_seconds", "invalid_apm_uptime_seconds");
-  if (!uptime.ok) return uptime;
+  return uptime.ok ? success(true) : uptime;
+}
 
-  if (!Array.isArray(root.filesystems)) return failure("invalid_apm_filesystems");
-
-  const serviceResult = requireRecord(root.service, "invalid_apm_service");
+function validateService(value: unknown): Result<true, ApmDecodeError> {
+  const serviceResult = requireRecord(value, "invalid_apm_service");
   if (!serviceResult.ok) return serviceResult;
   const service = serviceResult.value;
   const requestCount = requireString(service, "request_count", "invalid_apm_request_count");
@@ -121,10 +119,22 @@ function decodeApmSnapshotValue(value: unknown): Result<ApmSnapshot, ApmDecodeEr
   );
   if (!activeRequests.ok) return activeRequests;
   const latency = requireRecord(service.latency_seconds, "invalid_apm_latency_seconds");
-  if (!latency.ok) return latency;
+  return latency.ok ? success(true) : latency;
+}
+
+function decodeApmSnapshotValue(value: unknown): Result<ApmSnapshot, ApmDecodeError> {
+  const rootResult = requireRecord(value, "invalid_apm_root");
+  if (!rootResult.ok) return rootResult;
+  const root = rootResult.value;
+  const identity = validateIdentity(root);
+  if (!identity.ok) return identity;
+  const process = validateProcess(root.process);
+  if (!process.ok) return process;
+  if (!Array.isArray(root.filesystems)) return failure("invalid_apm_filesystems");
+  const service = validateService(root.service);
+  if (!service.ok) return service;
   const capabilities = requireRecord(root.capabilities, "invalid_apm_capabilities");
   if (!capabilities.ok) return capabilities;
-
   return success(deepFreeze(root as unknown as ApmSnapshot));
 }
 
