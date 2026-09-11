@@ -1,4 +1,4 @@
-name: APM Rust conformance
+name: APM Rust + TypeScript conformance
 
 on:
   pull_request:
@@ -6,6 +6,7 @@ on:
       - 'contracts/ores-apm.lock.json'
       - 'clients/support-matrix.toml'
       - 'clients/rust/**'
+      - 'clients/typescript/**'
       - '.github/workflows/apm-rust-conformance.yml'
   push:
     branches: [main]
@@ -13,6 +14,7 @@ on:
       - 'contracts/ores-apm.lock.json'
       - 'clients/support-matrix.toml'
       - 'clients/rust/**'
+      - 'clients/typescript/**'
       - '.github/workflows/apm-rust-conformance.yml'
   workflow_dispatch:
 
@@ -20,11 +22,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: apm-rust-${{ github.ref }}
+  group: apm-tier1-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  conformance:
+  rust:
+    name: rust
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -104,3 +107,56 @@ jobs:
           assert all(v['apm'] in {'conformant', 'model-only', 'pending'} for v in langs.values())
           assert doc['apm']['contract_revision'] == '${{ steps.apm.outputs.revision }}'
           PY
+
+  typescript:
+    name: typescript
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact client candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          show-progress: false
+
+      - name: Read pinned APM authority
+        id: apm
+        shell: bash
+        run: |
+          set -euo pipefail
+          lock=contracts/ores-apm.lock.json
+          revision="$(jq -er '.revision' "$lock")"
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
+          test "$(jq -er '.repository' "$lock")" = 'ores-otel/ores-interfaces'
+          printf 'revision=%s\n' "$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Check out exact APM authority
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ores-otel/ores-interfaces
+          ref: ${{ steps.apm.outputs.revision }}
+          path: .deps/ores-interfaces
+          persist-credentials: false
+          show-progress: false
+
+      - name: Set up Node 22.16
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22.16.0'
+
+      - name: Typecheck TypeScript client
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes --package=typescript@5.9.2 tsc \
+            --noEmit --strict --target ES2022 --module ESNext --moduleResolution Bundler \
+            --lib ES2022,DOM clients/typescript/src/*.ts
+
+      - name: Execute canonical APM fixture and negative cases
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture=".deps/ores-interfaces/$(jq -er '.fixture' contracts/ores-apm.lock.json)"
+          test -s "$fixture"
+          npx --yes tsx@4.20.5 clients/typescript/apm-fixture.test.ts "$fixture"
