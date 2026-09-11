@@ -1,5 +1,10 @@
 import { ClientError } from "./errors";
 
+/** Minimal ambient contract for Node-style deployments without coupling this SDK to @types/node. */
+declare const process: {
+  readonly env: Record<string, string | undefined>;
+};
+
 export interface ClientConfig {
   baseUrl: string;
   bearerToken?: string;
@@ -19,4 +24,3 @@ export function configFromEnv(
     maxResponseBytes: 64 * 1024,
   };
 }
-
