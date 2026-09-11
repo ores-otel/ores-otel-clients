@@ -15,6 +15,34 @@ export type Result<T, E> =
 
 export const RESOURCE = "TelemetryRecord" as const;
 
+export type ApmDecodeErrorCode =
+  | "too_large"
+  | "invalid_json"
+  | "invalid_apm_root"
+  | "invalid_apm_schema_version"
+  | "invalid_apm_observed_at_unix_nano"
+  | "invalid_apm_service_name"
+  | "invalid_apm_service_instance_id"
+  | "invalid_apm_process"
+  | "invalid_apm_cpu_time_seconds"
+  | "invalid_apm_cpu_utilization"
+  | "invalid_apm_memory_usage_bytes"
+  | "invalid_apm_memory_virtual_bytes"
+  | "invalid_apm_disk_read_bytes"
+  | "invalid_apm_disk_write_bytes"
+  | "invalid_apm_uptime_seconds"
+  | "invalid_apm_filesystems"
+  | "invalid_apm_service"
+  | "invalid_apm_request_count"
+  | "invalid_apm_error_count"
+  | "invalid_apm_active_requests"
+  | "invalid_apm_latency_seconds"
+  | "invalid_apm_capabilities";
+
+export interface ApmDecodeError {
+  readonly code: ApmDecodeErrorCode;
+}
+
 export type ApmCapabilityStatus =
   | "unsupported"
   | "model-only"
