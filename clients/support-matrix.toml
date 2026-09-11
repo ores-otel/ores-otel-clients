@@ -1,56 +1,79 @@
-version = 2
+version = 3
 
 [capabilities]
 required_operations = ["health"]
 required_security = ["https", "bearer_header", "bounded_response"]
 
+[apm]
+contract_repository = "ores-otel/ores-interfaces"
+contract_revision = "942428dc36face4fb50eaac433e6219db648748a"
+contract = "contracts/ores-apm/v1/ores-apm.tsp"
+status_values = ["conformant", "model-only", "pending"]
+
 [languages.rust]
 tier = 1
+apm = "conformant"
 
 [languages.dart]
 tier = 1
+apm = "pending"
 
 [languages.typescript]
 tier = 1
+apm = "pending"
 
 [languages.python]
 tier = 2
+apm = "pending"
 
 [languages.go]
 tier = 2
+apm = "pending"
 
 [languages.java]
 tier = 2
+apm = "pending"
 
 [languages.kotlin]
 tier = 3
+apm = "pending"
 
 [languages.swift]
 tier = 3
+apm = "pending"
 
 [languages.csharp]
 tier = 3
+apm = "pending"
 
 [languages.c]
 tier = 3
+apm = "pending"
 
 [languages.cpp]
 tier = 3
+apm = "pending"
 
 [languages.ruby]
 tier = 3
+apm = "pending"
 
 [languages.php]
 tier = 3
+apm = "pending"
 
 [languages.elixir]
 tier = 3
+apm = "pending"
 
 [languages.lua]
 tier = 3
+apm = "pending"
 
 [languages.zig]
 tier = 3
+apm = "pending"
 
 [languages.shell]
 tier = 3
+apm = "pending"

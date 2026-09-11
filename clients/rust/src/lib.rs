@@ -8,5 +8,4 @@ pub mod types;
 pub use client::Client;
 pub use config::ClientConfig;
 pub use error::ClientError;
-pub use types::{Health, ResourceEnvelope};
-
+pub use types::{ApmSnapshot, Health, ResourceEnvelope};

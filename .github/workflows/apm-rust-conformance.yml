@@ -1,0 +1,106 @@
+name: APM Rust conformance
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/ores-apm.lock.json'
+      - 'clients/support-matrix.toml'
+      - 'clients/rust/**'
+      - '.github/workflows/apm-rust-conformance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/ores-apm.lock.json'
+      - 'clients/support-matrix.toml'
+      - 'clients/rust/**'
+      - '.github/workflows/apm-rust-conformance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apm-rust-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conformance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact client candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          show-progress: false
+
+      - name: Read pinned APM authority
+        id: apm
+        shell: bash
+        run: |
+          set -euo pipefail
+          lock=contracts/ores-apm.lock.json
+          revision="$(jq -er '.revision' "$lock")"
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
+          test "$(jq -er '.repository' "$lock")" = 'ores-otel/ores-interfaces'
+          printf 'revision=%s\n' "$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Check out exact APM authority
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ores-otel/ores-interfaces
+          ref: ${{ steps.apm.outputs.revision }}
+          path: .deps/ores-interfaces
+          persist-credentials: false
+          show-progress: false
+
+      - name: Verify authority and fixture paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          lock=contracts/ores-apm.lock.json
+          for field in typespec jsonSchema fixture; do
+            path=".deps/ores-interfaces/$(jq -er --arg field "$field" '.[$field]' "$lock")"
+            test -s "$path"
+          done
+
+      - name: Install Rust 1.95
+        uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30
+        with:
+          toolchain: 1.95.0
+          components: rustfmt,clippy
+
+      - name: Rustfmt exact sources
+        run: cargo fmt --manifest-path clients/rust/Cargo.toml -- --check
+
+      - name: Clippy all Rust targets
+        run: cargo clippy --manifest-path clients/rust/Cargo.toml --all-targets -- -D warnings
+
+      - name: Test all Rust targets
+        run: cargo test --manifest-path clients/rust/Cargo.toml --all-targets
+
+      - name: Execute canonical APM fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture=".deps/ores-interfaces/$(jq -er '.fixture' contracts/ores-apm.lock.json)"
+          cargo run --quiet --manifest-path clients/rust/Cargo.toml --example verify_apm_fixture -- "$fixture"
+
+      - name: Enforce honest 17-language matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import tomllib
+          from pathlib import Path
+
+          doc = tomllib.loads(Path('clients/support-matrix.toml').read_text())
+          langs = doc['languages']
+          assert len(langs) >= 15, len(langs)
+          assert langs['rust']['apm'] == 'conformant'
+          assert langs['dart']['apm'] == 'pending'
+          assert langs['typescript']['apm'] == 'pending'
+          assert all(v['apm'] in {'conformant', 'model-only', 'pending'} for v in langs.values())
+          assert doc['apm']['contract_revision'] == '${{ steps.apm.outputs.revision }}'
+          PY
