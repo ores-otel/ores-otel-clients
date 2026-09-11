@@ -17,9 +17,10 @@ impl ClientConfig {
         }
         Ok(Self {
             base_url: base,
-            bearer_token: std::env::var("ORES_OTEL_TOKEN").ok().filter(|v| !v.is_empty()),
+            bearer_token: std::env::var("ORES_OTEL_TOKEN")
+                .ok()
+                .filter(|v| !v.is_empty()),
             max_response_bytes: 64 * 1024,
         })
     }
 }
-

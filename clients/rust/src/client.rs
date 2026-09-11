@@ -21,7 +21,10 @@ impl Client {
         format!("{}/v1/health", self.config.base_url.trim_end_matches('/'))
     }
 
-    pub fn authorize<'a>(&'a self, token_override: Option<&'a str>) -> Result<Option<&'a str>, ClientError> {
+    pub fn authorize<'a>(
+        &'a self,
+        token_override: Option<&'a str>,
+    ) -> Result<Option<&'a str>, ClientError> {
         let token = token_override.or(self.config.bearer_token.as_deref());
         if let Some(value) = token {
             if value.trim().is_empty() {

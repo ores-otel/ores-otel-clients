@@ -6,7 +6,9 @@ use std::fs;
 use ores_otel_client::{Client, ClientConfig};
 
 fn main() {
-    let path = env::args().nth(1).expect("usage: verify_apm_fixture <fixture.json>");
+    let path = env::args()
+        .nth(1)
+        .expect("usage: verify_apm_fixture <fixture.json>");
     let body = fs::read(&path).expect("read canonical APM fixture");
     let client = Client::new(ClientConfig {
         base_url: "https://example.invalid".to_owned(),
