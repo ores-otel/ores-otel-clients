@@ -1,5 +1,6 @@
 name: APM Tier-1 conformance
 
+# Exact-head admission must rerun after formatter-produced Rust normalization.
 on:
   pull_request:
     paths:
