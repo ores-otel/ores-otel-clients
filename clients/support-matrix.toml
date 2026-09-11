@@ -20,7 +20,7 @@ apm = "pending"
 
 [languages.typescript]
 tier = 1
-apm = "pending"
+apm = "conformant"
 
 [languages.python]
 tier = 2
