@@ -1,0 +1,116 @@
+name: APM Dart conformance
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/ores-apm.lock.json'
+      - 'clients/support-matrix.toml'
+      - 'clients/dart/**'
+      - 'tools/fp-conformance/**'
+      - '.github/workflows/apm-dart-conformance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/ores-apm.lock.json'
+      - 'clients/support-matrix.toml'
+      - 'clients/dart/**'
+      - 'tools/fp-conformance/**'
+      - '.github/workflows/apm-dart-conformance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apm-dart-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dart:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact client candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          show-progress: false
+
+      - name: Read pinned peer authority
+        id: apm
+        shell: bash
+        run: |
+          set -euo pipefail
+          lock=contracts/ores-apm.lock.json
+          revision="$(jq -er '.revision' "$lock")"
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
+          test "$(jq -er '.repository' "$lock")" = 'ores-otel/ores-interfaces'
+          jq -er '.typespec | select(endswith(".tsp"))' "$lock" >/dev/null
+          jq -er '.jsonSchema | select(endswith(".schema.json"))' "$lock" >/dev/null
+          printf 'revision=%s\n' "$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Check out exact APM peer authority
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ores-otel/ores-interfaces
+          ref: ${{ steps.apm.outputs.revision }}
+          path: .deps/ores-interfaces
+          persist-credentials: false
+          show-progress: false
+
+      - name: Verify authored TypeSpec, JSON Schema, and fixture exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          lock=contracts/ores-apm.lock.json
+          for field in typespec jsonSchema fixture; do
+            path=".deps/ores-interfaces/$(jq -er --arg field "$field" '.[$field]' "$lock")"
+            test -s "$path"
+          done
+
+      - name: Set up Dart 3.12.1
+        uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+        with:
+          sdk: '3.12.1'
+
+      - name: Install Dart dependencies
+        working-directory: clients/dart
+        run: dart pub get
+
+      - name: Enforce Dart formatting
+        working-directory: clients/dart
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze Dart package
+        working-directory: clients/dart
+        run: dart analyze
+
+      - name: Execute canonical APM fixture and negative cases
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="$(pwd)/.deps/ores-interfaces/$(jq -er '.fixture' contracts/ores-apm.lock.json)"
+          cd clients/dart
+          ORES_APM_FIXTURE="$fixture" dart test test/apm_fixture_test.dart
+
+      - name: Keep functional-conformance budget from increasing
+        run: python3 tools/fp-conformance/fp_conformance.py .
+
+      - name: Enforce honest support matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import tomllib
+          from pathlib import Path
+
+          doc = tomllib.loads(Path('clients/support-matrix.toml').read_text())
+          langs = doc['languages']
+          assert len(langs) >= 15, len(langs)
+          assert langs['rust']['apm'] == 'conformant'
+          assert langs['dart']['apm'] == 'pending'
+          assert langs['typescript']['apm'] in {'pending', 'conformant'}
+          assert all(v['apm'] in {'conformant', 'model-only', 'pending'} for v in langs.values())
+          assert doc['apm']['contract_revision'] == '${{ steps.apm.outputs.revision }}'
+          PY
