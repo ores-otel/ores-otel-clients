@@ -1,4 +1,4 @@
-version = 3
+version = 4
 
 [capabilities]
 required_operations = ["health"]
@@ -7,7 +7,11 @@ required_security = ["https", "bearer_header", "bounded_response"]
 [apm]
 contract_repository = "ores-otel/ores-interfaces"
 contract_revision = "942428dc36face4fb50eaac433e6219db648748a"
-contract = "contracts/ores-apm/v1/ores-apm.tsp"
+typespec = "contracts/ores-apm/v1/ores-apm.tsp"
+json_schema = "contracts/ores-apm/v1/ores-apm.schema.json"
+fixture = "contracts/ores-apm/v1/example.snapshot.json"
+precedence = "none"
+generated_schema_role = "comparison-evidence-only"
 status_values = ["conformant", "model-only", "pending"]
 
 [languages.rust]
