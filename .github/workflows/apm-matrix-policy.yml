@@ -1,0 +1,75 @@
+name: APM matrix peer-authority policy
+
+on:
+  pull_request:
+    paths:
+      - "clients/support-matrix.toml"
+      - "contracts/ores-apm.lock.json"
+      - ".github/workflows/apm-matrix-policy.yml"
+  push:
+    branches: [main]
+    paths:
+      - "clients/support-matrix.toml"
+      - "contracts/ores-apm.lock.json"
+      - ".github/workflows/apm-matrix-policy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Verify exact candidate
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Enforce explicit co-equal APM authorities and 15+ languages
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import re
+          import tomllib
+
+          root = pathlib.Path('.')
+          matrix = tomllib.loads((root / 'clients/support-matrix.toml').read_text())
+          lock = json.loads((root / 'contracts/ores-apm.lock.json').read_text())
+          apm = matrix['apm']
+          langs = matrix['languages']
+
+          assert matrix['version'] == 4
+          assert len(langs) >= 15, len(langs)
+          assert re.fullmatch(r'[0-9a-f]{40}', apm['contract_revision'])
+          assert apm['contract_repository'] == lock['repository']
+          assert apm['contract_revision'] == lock['revision']
+          assert apm['typespec'] == lock['typespec'] and apm['typespec'].endswith('.tsp')
+          assert apm['json_schema'] == lock['jsonSchema'] and apm['json_schema'].endswith('.schema.json')
+          assert apm['fixture'] == lock['fixture']
+          assert apm['typespec'] != apm['json_schema']
+          assert apm['precedence'] == 'none'
+          assert apm['generated_schema_role'] == 'comparison-evidence-only'
+          assert set(apm['status_values']) == {'conformant', 'model-only', 'pending'}
+          forbidden = ('generated', 'typespec.generated.schema.json', 'schema-b')
+          for authored in (apm['typespec'], apm['json_schema']):
+              lowered = authored.lower()
+              assert not any(token in lowered for token in forbidden), authored
+          for name, entry in langs.items():
+              assert (root / 'clients' / name).is_dir(), name
+              assert entry['apm'] in apm['status_values'], (name, entry['apm'])
+          assert langs['rust']['apm'] == 'conformant'
+          assert langs['typescript']['apm'] == 'conformant'
+          PY
+      - name: Prove policy check is read only
+        shell: bash
+        run: test -z "$(git status --porcelain=v1 --untracked-files=all)"
