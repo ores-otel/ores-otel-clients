@@ -102,9 +102,10 @@ jobs:
           langs = doc['languages']
           assert len(langs) >= 15, len(langs)
           assert langs['rust']['apm'] == 'conformant'
+          assert langs['typescript']['apm'] == 'conformant'
           assert langs['dart']['apm'] == 'pending'
-          assert langs['typescript']['apm'] == 'pending'
           assert all(v['apm'] in {'conformant', 'model-only', 'pending'} for v in langs.values())
+          assert {name for name, cfg in langs.items() if cfg['apm'] == 'conformant'} == {'rust', 'typescript'}
           assert doc['apm']['contract_revision'] == '${{ steps.apm.outputs.revision }}'
           PY
 
