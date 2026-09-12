@@ -1,7 +1,7 @@
 target/
 /node_modules
 /build
-/.dart_tool
+**/.dart_tool/
 /coverage
 .DS_Store
 .env
@@ -14,3 +14,5 @@ Cargo.lock
 # Local temporary directories and repository-owned worktrees
 tmp/
 temp/
+# Repository-local build outputs, temporary files, and worktrees.
+target/
