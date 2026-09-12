@@ -16,3 +16,8 @@ tmp/
 temp/
 # Repository-local build outputs, temporary files, and worktrees.
 target/
+# Repository-local temporary data and authorized Git worktrees
+tmp
+temp
+tmp/worktrees
+temp/worktrees
