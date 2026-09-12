@@ -35,6 +35,7 @@ but the reason must be documented next to that mutation and the public boundary
 should remain value-oriented where practical.
 
 The principles, the rule codes and the remedy for each are in `FP-GUIDELINES.md`.
+
 ## Repository-local Git worktrees
 
 - Create or use a Git worktree only when the human operator explicitly authorizes it for the current task. Concurrency or a dirty checkout is not permission by itself.
