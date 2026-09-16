@@ -1,4 +1,102 @@
+[package]
+org = "ores-otel"
 name = "ores-otel-clients"
-kind = "clients"
 version = "0.1.0"
+description = "Polyglot ORES OpenTelemetry/APM clients bound to the ores-interfaces contract"
+license = "MIT"
+keywords = ["opentelemetry", "apm", "telemetry", "clients", "sdk", "polyglot"]
 
+[package.repository]
+vcs = "git"
+url = "https://github.com/ores-otel/ores-otel-clients"
+
+[install]
+dir = "zed_modules"
+
+# clients/support-matrix.toml pins the APM contract to ores-otel/ores-interfaces;
+# the Zed dependency makes that authority visible to the package graph.
+[dependencies]
+"ores-otel/ores-interfaces" = "^0.1.0"
+
+[publish]
+include_readme = true
+tag_format = "v{version}"
+exclude = [".env", ".env.*", ".github/**", ".zed/**", ".zed-pack/**", ".zpkg.lock", "zed_modules/**", "tmp/**", "temp/**", "**/*.log", ".DS_Store", "**/target/**", "**/node_modules/**", "**/.dart_tool/**", "**/build/**", "**/dist/**", "**/*.class"]
+
+# The unnamed whole-repository target publishes the canonical
+# ores-otel/ores-otel-clients coordinate; native consumers may select a
+# language target instead.
+[targets.repository]
+dir = "."
+adapter = "none"
+
+[targets.c]
+dir = "clients/c"
+adapter = "none"
+
+[targets.cpp]
+dir = "clients/cpp"
+adapter = "none"
+
+[targets.csharp]
+dir = "clients/csharp"
+adapter = "none"
+
+[targets.dart]
+dir = "clients/dart"
+adapter = "none"
+
+[targets.elixir]
+dir = "clients/elixir"
+adapter = "none"
+
+[targets.golang]
+dir = "clients/go"
+name = "ores-otel-clients-golang"
+adapter = "none"
+
+[targets.java]
+dir = "clients/java"
+adapter = "java"
+
+[targets.kotlin]
+dir = "clients/kotlin"
+adapter = "java"
+
+[targets.lua]
+dir = "clients/lua"
+adapter = "none"
+
+[targets.php]
+dir = "clients/php"
+adapter = "none"
+
+[targets.python]
+dir = "clients/python"
+adapter = "none"
+
+[targets.ruby]
+dir = "clients/ruby"
+adapter = "none"
+
+[targets.rust]
+dir = "clients/rust"
+adapter = "none"
+
+[targets.shell]
+dir = "clients/shell"
+adapter = "none"
+
+[targets.swift]
+dir = "clients/swift"
+adapter = "none"
+
+# One TypeScript package owns Node.js, Deno, Bun, and edge exports.
+[targets.nodejs]
+dir = "clients/typescript"
+name = "ores-otel-clients-nodejs"
+adapter = "node"
+
+[targets.zig]
+dir = "clients/zig"
+adapter = "none"
