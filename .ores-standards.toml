@@ -1,0 +1,3 @@
+version = 1
+max_blob_bytes = 52428800
+ignore_encrypted_env = false
