@@ -13,10 +13,12 @@ url = "https://github.com/ores-otel/ores-otel-clients"
 [install]
 dir = "zed_modules"
 
-# clients/support-matrix.toml pins the APM contract to ores-otel/ores-interfaces;
-# the Zed dependency makes that authority visible to the package graph.
+# Contract authority plus the two fail-closed governance tools used by the
+# repository-owned Zed lifecycle hooks.
 [dependencies]
 "ores-otel/ores-interfaces" = "^0.1.0"
+"oresoftware/ores-cli" = "^0.1.0"
+"oresoftware/typespec-json-schema-validator" = "^0.1.0"
 
 [publish]
 include_readme = true
@@ -100,3 +102,11 @@ adapter = "node"
 [targets.zig]
 dir = "clients/zig"
 adapter = "none"
+
+[targets.governance]
+dir = "governance"
+name = "ores-otel-client-governance"
+adapter = "none"
+
+[scripts]
+test = "sh .zed/pre-build"
