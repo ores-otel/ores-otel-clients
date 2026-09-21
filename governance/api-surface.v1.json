@@ -1,0 +1,25 @@
+{
+  "schema": "ores.otel.polyglot-api-surface/v1",
+  "authority_repository": "ores-otel/ores-interfaces",
+  "support_matrix": "clients/support-matrix.toml",
+  "required_operations": ["health"],
+  "languages": {
+    "c": {"operations": {"health": {"path": "clients/c/client.c", "symbols": ["health_path", "/v1/health"]}}},
+    "cpp": {"operations": {"health": {"path": "clients/cpp/client.hpp", "symbols": ["health_path", "/v1/health"]}}},
+    "csharp": {"operations": {"health": {"path": "clients/csharp/client.cs", "symbols": ["HealthUrl", "/v1/health"]}}},
+    "dart": {"operations": {"health": {"path": "clients/dart/lib/src/client.dart", "symbols": ["healthUrl", "/v1/health"]}}},
+    "elixir": {"operations": {"health": {"path": "clients/elixir/client.ex", "symbols": ["health_path", "/v1/health"]}}},
+    "go": {"operations": {"health": {"path": "clients/go/client.go", "symbols": ["HealthPath", "/v1/health"]}}},
+    "java": {"operations": {"health": {"path": "clients/java/client.java", "symbols": ["healthUrl", "/v1/health"]}}},
+    "kotlin": {"operations": {"health": {"path": "clients/kotlin/client.kt", "symbols": ["healthUrl", "/v1/health"]}}},
+    "lua": {"operations": {"health": {"path": "clients/lua/client.lua", "symbols": ["health_path", "/v1/health"]}}},
+    "php": {"operations": {"health": {"path": "clients/php/client.php", "symbols": ["healthPath", "/v1/health"]}}},
+    "python": {"operations": {"health": {"path": "clients/python/client.py", "symbols": ["health_url", "/v1/health"]}}},
+    "ruby": {"operations": {"health": {"path": "clients/ruby/client.rb", "symbols": ["health_path", "/v1/health"]}}},
+    "rust": {"operations": {"health": {"path": "clients/rust/src/client.rs", "symbols": ["health_path", "/v1/health"]}}},
+    "shell": {"operations": {"health": {"path": "clients/shell/client.sh", "symbols": ["health_path", "/v1/health"]}}},
+    "swift": {"operations": {"health": {"path": "clients/swift/client.swift", "symbols": ["healthUrl", "/v1/health"]}}},
+    "typescript": {"operations": {"health": {"path": "clients/typescript/src/client.ts", "symbols": ["healthUrl", "/v1/health"]}}},
+    "zig": {"operations": {"health": {"path": "clients/zig/client.zig", "symbols": ["healthPath", "/v1/health"]}}}
+  }
+}
