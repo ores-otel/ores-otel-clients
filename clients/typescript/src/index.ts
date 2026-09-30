@@ -6,7 +6,7 @@ export {
   buildBrowserBackpressureEvent,
   createBrowserBackpressureObserver,
   createConsoleBackpressureSink,
-} from "./backpressure";
+} from "./telemetry/buffer/backpressure";
 export type {
   BackpressurePhase,
   BackpressureReason,
@@ -15,7 +15,7 @@ export type {
   BrowserBackpressureInput,
   BrowserBackpressureObserver,
   BrowserBackpressureSink,
-} from "./backpressure";
+} from "./telemetry/buffer/backpressure";
 export type {
   ApmCapabilitySet,
   ApmCapabilityStatus,
