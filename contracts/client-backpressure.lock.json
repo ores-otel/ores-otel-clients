@@ -1,0 +1,8 @@
+{
+  "schema": "ores-otel.client-backpressure-contract-lock/v1",
+  "repository": "ores-otel/ores-interfaces",
+  "revision": "2b4223e4db1a422682999f1577dd77b4170b95d8",
+  "typespec": "contracts/client-backpressure/v1/client-backpressure.tsp",
+  "jsonSchema": "contracts/client-backpressure/v1/client-backpressure.schema.json",
+  "fixture": "contracts/client-backpressure/v1/example.event.json"
+}
