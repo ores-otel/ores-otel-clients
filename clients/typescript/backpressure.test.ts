@@ -3,7 +3,7 @@ import { strict as assert } from "node:assert";
 import {
   buildBrowserBackpressureEvent,
   createBrowserBackpressureObserver,
-} from "./src/backpressure.ts";
+} from "./src/telemetry/buffer/backpressure.ts";
 
 const events: unknown[] = [];
 const observer = createBrowserBackpressureObserver((event) => {
