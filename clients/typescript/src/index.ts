@@ -2,6 +2,20 @@ export { Client } from "./client";
 export { configFromEnv } from "./config";
 export type { ClientConfig } from "./config";
 export { ClientError } from "./errors";
+export {
+  buildBrowserBackpressureEvent,
+  createBrowserBackpressureObserver,
+  createConsoleBackpressureSink,
+} from "./backpressure";
+export type {
+  BackpressurePhase,
+  BackpressureReason,
+  BackpressureTransport,
+  BrowserBackpressureEvent,
+  BrowserBackpressureInput,
+  BrowserBackpressureObserver,
+  BrowserBackpressureSink,
+} from "./backpressure";
 export type {
   ApmCapabilitySet,
   ApmCapabilityStatus,
