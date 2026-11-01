@@ -1,0 +1,22 @@
+import module client from "../client";
+
+pub routine main(): void {
+  stdio.println(client.health_url("https://otel.example"));
+  stdio.println(client.health_url("https://otel.example:443"));
+  stdio.println(client.valid_base_url("https://[::1]:4318") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://otel.example") ? "true" : "false");
+  stdio.println(client.valid_base_url("http://otel.example") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://user:pass@otel.example") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://otel.example?q=1") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://otel.example#fragment") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://otel.example/path") ? "true" : "false");
+  stdio.println(client.valid_base_url("https:///otel.example") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://otel.example\ninjected") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://otel.example evil") ? "true" : "false");
+  stdio.println(client.health_url("http://otel.example") == "" ? "empty" : "unsafe");
+  stdio.println(client.valid_base_url("https://") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://:443") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://otel.example%2Fother") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://otel.examplehttps://evil.example") ? "true" : "false");
+  return;
+}

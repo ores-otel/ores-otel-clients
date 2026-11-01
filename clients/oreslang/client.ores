@@ -1,0 +1,32 @@
+// Pure Oreslang /v1/health URL preparation.
+// No network, Java FFI, JS globals, WASI imports, mutable global state, or tokens.
+// The caller owns TLS, authentication, deadlines, and bounded response parsing.
+define module client as
+  // Accept origin-only HTTPS URLs. Fail closed on credentials, paths, escapes,
+  // controls and URL components that would change the health endpoint.
+  pub fnc valid_base_url(String base): bool {
+    if !base.starts_with("https://") || base == "https://"; then return false; fi
+    val String authority = base.replace_literal("https://", "");
+    // Ensure the HTTPS scheme was removed exactly once (reject nested schemes).
+    if base != "https://" + authority; then return false; fi
+    if authority == "" || authority.starts_with(":") || authority.ends_with(":")
+      || authority.starts_with(".") || authority.ends_with(".")
+      || authority.contains_literal("..") || authority.contains_literal("://")
+      || authority.contains_literal("https:") || authority.contains_literal("/")
+      || authority.contains_literal("\\") || authority.contains_literal("@")
+      || authority.contains_literal("?") || authority.contains_literal("#")
+      || authority.contains_literal("%") || authority.contains_literal(" ")
+      || authority.contains_literal("\t") || authority.contains_literal("\n")
+      || authority.contains_literal("\r") || authority.contains_literal("\u0000"); then
+      return false;
+    fi
+    return true;
+  }
+
+  // A pure, allocation-bounded path builder; never makes a network request.
+  // Empty string is the explicit fail-closed sentinel; callers must reject it.
+  pub fnc health_url(String base): String {
+    if !valid_base_url(base); then return ""; fi
+    return base + "/v1/health";
+  }
+end

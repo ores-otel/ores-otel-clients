@@ -2,6 +2,8 @@
 
 Polyglot SDKs under `clients/`. Rust, TypeScript, and Dart are first-class and modular. Other languages expose the same `/v1/health` surface.
 
+**Oreslang**: [portable health source and backend admission gates](clients/oreslang/README.md). Pure health URL preparation is source-implemented; network I/O, APM conformance, JS-transpiled/WASM execution and five native backends remain pending compiler-backed verification. Native spans and logs are developed in [oreslang-otel](https://github.com/ores-truffle-oreslang/oreslang-otel) with a separate, non-OTLP JSON Lines format.
+
 ## Contract authority
 
 Serialized ORES OTEL contracts use two independently authored peer authorities:

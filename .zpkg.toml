@@ -67,6 +67,10 @@ adapter = "java"
 dir = "clients/lua"
 adapter = "none"
 
+[targets.oreslang]
+dir = "clients/oreslang"
+adapter = "none"
+
 [targets.php]
 dir = "clients/php"
 adapter = "none"
