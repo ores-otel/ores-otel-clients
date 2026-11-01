@@ -7,7 +7,7 @@ export const expected = Object.freeze([
   "https://otel.example/v1/health",
   "https://otel.example:443/v1/health",
   "true", "true", "false", "false", "false", "false",
-  "false", "false", "false", "false", "empty", "false", "false", "false",
+  "false", "false", "false", "false", "empty", "false", "false", "false", "false",
 ]);
 
 export function verifyGuestStdout(stdout) {

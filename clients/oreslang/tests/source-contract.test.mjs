@@ -23,10 +23,10 @@ test("source is a pure Oreslang library with fail-closed URL guard", () => {
   assert.match(source, /pub fnc health_url\(String base\): String/);
   assert.match(source, /return base \+ "\/v1\/health"/);
   assert.match(source, /return "";/);
-  for (const unsafe of ['"@"', '"?"', '"#"', '"%"', '"\\\\\\\\..."']) {
-    if (unsafe === '"\\\\\\\\..."') continue;
+  for (const unsafe of ['"@"', '"?"', '"#"', '"%"']) {
     assert.ok(source.includes("contains_literal(" + unsafe + ")"), "missing rejection " + unsafe);
   }
+  assert.ok(source.includes('base != "https://" + authority'));
   assert.ok(source.includes('starts_with("https://")'));
   assert.ok(source.includes('contains_literal("\\\\")'));
   assert.ok(source.includes('contains_literal("\\n")'));

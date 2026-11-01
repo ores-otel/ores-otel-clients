@@ -17,5 +17,6 @@ pub routine main(): void {
   stdio.println(client.valid_base_url("https://") ? "true" : "false");
   stdio.println(client.valid_base_url("https://:443") ? "true" : "false");
   stdio.println(client.valid_base_url("https://otel.example%2Fother") ? "true" : "false");
+  stdio.println(client.valid_base_url("https://otel.examplehttps://evil.example") ? "true" : "false");
   return;
 }
