@@ -81,3 +81,10 @@ apm = "pending"
 [languages.shell]
 tier = 3
 apm = "pending"
+
+[languages.oreslang]
+tier = 2
+apm = "pending"
+health = "source-implemented"
+guest_evidence = "not-attested"
+targets_to_verify = ["java", "llvm", "wasm", "cranelift", "net", "javascript"]

@@ -1,0 +1,30 @@
+name: Oreslang source-only health contract
+on:
+  pull_request:
+    paths:
+      - "clients/oreslang/**"
+      - "clients/support-matrix.toml"
+      - ".github/workflows/oreslang-source-contract.yml"
+  push:
+    branches: [main]
+    paths:
+      - "clients/oreslang/**"
+      - "clients/support-matrix.toml"
+      - ".github/workflows/oreslang-source-contract.yml"
+permissions:
+  contents: read
+jobs:
+  source-contract-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact candidate SHA
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Host source and oracle regressions only (no compiler executed)
+        run: node --test clients/oreslang/tests/source-contract.test.mjs
