@@ -1,0 +1,1 @@
+Native AttoLang source-stage health response and retry policy. This module has not been executed by an AttoLang backend. TypeScript tests use production Client decoding against a loopback HTTP fixture, not the production API server. Note: SDK health URL is /v1/health, whereas the current Rust owner exposes /health; owner-backed route convergence is a separate release blocker.

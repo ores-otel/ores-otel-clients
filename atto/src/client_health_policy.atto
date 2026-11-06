@@ -1,0 +1,13 @@
+// Pure AttoLang SDK response bounds and retry admission.
+// Wire I/O remains under explicit caller-owned transport.
+define module client_health_policy as
+  pub fnc valid_response_bytes(int length, int budget): bool {
+    if length <= 0 || budget <= 0; then return false; fi
+    return length <= budget;
+  }
+
+  pub fnc retryable(int status, bool idempotent): bool {
+    if !idempotent; then return false; fi
+    return status == 429 || status == 503;
+  }
+end
