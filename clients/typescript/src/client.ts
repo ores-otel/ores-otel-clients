@@ -153,11 +153,25 @@ export class Client {
     if (body.byteLength > this.config.maxResponseBytes) {
       throw new ClientError("too_large");
     }
+    let value: unknown;
     try {
-      return JSON.parse(new TextDecoder().decode(body)) as Health;
+      value = JSON.parse(new TextDecoder().decode(body)) as unknown;
     } catch {
       throw new ClientError("invalid_json");
     }
+    // Never trust a TypeScript cast as runtime verification of a remote body.
+    // Copy only the supported scalar fields to avoid carrying attacker keys.
+    if (
+      !isRecord(value) ||
+      typeof value.ok !== "boolean" ||
+      typeof value.service !== "string" ||
+      value.service.length === 0 ||
+      value.service.length > 128 ||
+      !/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/.test(value.service)
+    ) {
+      throw new ClientError("invalid_response");
+    }
+    return Object.freeze({ ok: value.ok, service: value.service });
   }
 
   /**
